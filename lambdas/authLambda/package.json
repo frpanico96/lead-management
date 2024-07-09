@@ -1,0 +1,23 @@
+{
+  "name": "authlambda",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "compile": "esbuild ./src/**.ts --bundle --sourcemap --platform=node --target=node20 --outdir=dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.140",
+    "@types/jsonwebtoken": "^9.0.6",
+    "aws-lambda": "^1.0.7",
+    "esbuild": "0.23.0"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2"
+  }
+}
