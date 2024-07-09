@@ -1,0 +1,70 @@
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as dynamoDb from 'aws-cdk-lib/aws-dynamodb';
+
+import * as path from 'path';
+
+export class AgentStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps){
+    super(scope, id, props);
+
+    /* Create table */
+    const agentsTable = new dynamoDb.Table(this, 'AgentsTable', {
+      partitionKey: {name: 'username', type: dynamoDb.AttributeType.STRING},
+    });
+
+
+    /* Create Lambda */
+    const agentsFunction = new lambda.Function(this, 'AgentsFunction', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '..', '/lambdas', '/agentsLambda', '/dist')),
+      environment: {
+        AGENTS_TABLE_NAME: agentsTable.tableName,
+      },
+    });
+
+
+    /* Create api gateway */
+    const agentsApi = new apigateway.RestApi(this, 'AgentsApi', {
+      restApiName: 'AgentsApi',
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+      }
+    });
+
+    /* Add resource */
+    const agentResource = agentsApi.root.addResource('agents');
+
+    /* Attach lambda */
+    const agentIntegration = new apigateway.LambdaIntegration(agentsFunction, {
+      requestTemplates: {
+        "application/json": JSON.stringify({
+          statusCode: 200,
+          body: "$input.json('$')",
+          queryStringParameters: "$input.params()",
+        }),
+      }
+    });
+
+    /* Add method */
+    agentResource.addMethod('POST', agentIntegration, {
+      requestParameters: {
+        "method.request.querystring.username": false,
+        "method.request.querystring.agencyCode": false,
+      }
+    });
+
+    /* Output URL */
+    new cdk.CfnOutput(this, 'AgentsApiUrl', {
+      value: agentsApi.url,
+      description: 'Agents API Gateway'
+    })
+
+
+  }
+}

@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { LeadManagementStack } from '../lib/lead-management-stack';
+import { AuthStack } from '../lib/auth-stack';
+import { AgentStack } from '../lib/agent-stack';
 
 const app = new cdk.App();
-new LeadManagementStack(app, 'LeadManagementStack', {
+new AuthStack(app, 'AuthStack', {
   env:{
     region: 'us-east-1'
   }
@@ -22,3 +23,8 @@ new LeadManagementStack(app, 'LeadManagementStack', {
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
+new AgentStack(app, 'AgentStack', {
+  env: {
+    region: 'us-east-1',
+  }
+})
