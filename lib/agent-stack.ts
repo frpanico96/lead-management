@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import * as dynamoDb from 'aws-cdk-lib/aws-dynamodb';
+import { aws_dynamodb as dynamodb } from 'aws-cdk-lib';
 
 import * as path from 'path';
 
@@ -12,8 +12,10 @@ export class AgentStack extends cdk.Stack {
     super(scope, id, props);
 
     /* Create table */
-    const agentsTable = new dynamoDb.Table(this, 'AgentsTable', {
-      partitionKey: {name: 'username', type: dynamoDb.AttributeType.STRING},
+    const agentsTable = new dynamodb.Table(this, 'AgentsTable', {
+      tableName: 'Agents',
+      partitionKey: {name: 'username', type: dynamodb.AttributeType.STRING},
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
 
@@ -21,12 +23,15 @@ export class AgentStack extends cdk.Stack {
     const agentsFunction = new lambda.Function(this, 'AgentsFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '..', '/lambdas', '/agentsLambda', '/dist')),
+      code: lambda.Code.fromAsset(path.join(__dirname, '..', 'lambdas', 'agentsLambda', 'dist')),
       environment: {
         AGENTS_TABLE_NAME: agentsTable.tableName,
       },
     });
 
+
+    /* Give Permissions */
+    agentsTable.grantReadWriteData(agentsFunction);
 
     /* Create api gateway */
     const agentsApi = new apigateway.RestApi(this, 'AgentsApi', {
@@ -42,6 +47,7 @@ export class AgentStack extends cdk.Stack {
 
     /* Attach lambda */
     const agentIntegration = new apigateway.LambdaIntegration(agentsFunction, {
+      timeout: cdk.Duration.seconds(29),
       requestTemplates: {
         "application/json": JSON.stringify({
           statusCode: 200,
