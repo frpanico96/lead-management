@@ -7,7 +7,7 @@ import { AgentStack } from '../lib/agent-stack';
 const app = new cdk.App();
 new AuthStack(app, 'AuthStack', {
   env:{
-    region: 'us-east-1'
+    region: 'eu-west-1'
   }
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
@@ -25,6 +25,6 @@ new AuthStack(app, 'AuthStack', {
 });
 new AgentStack(app, 'AgentStack', {
   env: {
-    region: 'us-east-1',
+    region: 'eu-west-1',
   }
 })

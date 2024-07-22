@@ -1,0 +1,5 @@
+@agents_url = https://vem5k9ug3k.execute-api.localhost.localstack.cloud:4566/prod
+
+
+
+POST {{agents_url}}/agents?username=user@id.com&agencyCode=AG001

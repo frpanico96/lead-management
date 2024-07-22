@@ -1,8 +1,8 @@
+import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
+import { marshall } from '@aws-sdk/util-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Handler } from 'aws-lambda';
-import { DynamoDB } from 'aws-sdk';
-import { PutItemInput } from 'aws-sdk/clients/dynamodb';
 
-const dynamoDb = new DynamoDB.DocumentClient();
+const ddbClient = new DynamoDBClient({});
 
 export const handler: Handler = async(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try{
@@ -23,16 +23,12 @@ export const handler: Handler = async(event: APIGatewayProxyEvent): Promise<APIG
     console.log('Data:', username, agencyCode);
     console.log('TableName', process.env.AGENTS_TABLE_NAME);
     
-    const params = {
-      TableName: process.env.AGENTS_TABLE_NAME!,
-      Item: {
-        username,
-        agencyCode,
-      },
-      ConditionExpression: 'attribute_not_exists(username)',
-    };
+    const command = new PutItemCommand({
+      TableName: process.env.AGENTS_TABLE_NAME,
+      Item: marshall({username, agencyCode}),
+    })
 
-    await dynamoDb.put(params).promise()
+    await ddbClient.send(command)
       .catch(error => {throw new Error(error)});
 
     return {
@@ -43,7 +39,7 @@ export const handler: Handler = async(event: APIGatewayProxyEvent): Promise<APIG
     console.error('Error in agent creation', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({message: 'Error creating agent', error: error.message}),
+      body: JSON.stringify({message: 'Error creating agent', error: (error as Error).message}),
     }
   }
 }

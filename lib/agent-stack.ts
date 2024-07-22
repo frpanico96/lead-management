@@ -6,6 +6,7 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import { aws_dynamodb as dynamodb } from 'aws-cdk-lib';
 
 import * as path from 'path';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 export class AgentStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps){
@@ -20,10 +21,10 @@ export class AgentStack extends cdk.Stack {
 
 
     /* Create Lambda */
-    const agentsFunction = new lambda.Function(this, 'AgentsFunction', {
+    const agentsFunction = new NodejsFunction(this, 'AgentsFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '..', 'lambdas', 'agentsLambda', 'dist')),
+      handler: 'handler',
+      entry: path.join(__dirname, '..', 'lambdas', 'agentsLambda', 'src', 'index.ts'),
       environment: {
         AGENTS_TABLE_NAME: agentsTable.tableName,
       },
